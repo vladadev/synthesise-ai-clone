@@ -1,0 +1,176 @@
+@import "tailwindcss";
+
+/* ------------------------------------------------------------------ *
+ * Design tokens
+ * ------------------------------------------------------------------ */
+@theme {
+  --color-ink: #101322;
+  --color-ink-soft: #414659;
+  --color-muted: #6b7280;
+  --color-faint: #9aa1ae;
+  --color-line: #e8e8ee;
+  --color-line-soft: #f1f1f6;
+
+  --color-brand-50: #f4f2ff;
+  --color-brand-100: #ebe7ff;
+  --color-brand-200: #d9d2ff;
+  --color-brand-300: #bcaeff;
+  --color-brand-400: #9c86fb;
+  --color-brand-500: #7f5cf5;
+  --color-brand-600: #6746e4;
+  --color-brand-700: #4f37bd;
+
+  --color-canvas: #ffffff;
+  --color-canvas-tint: #fbfaff;
+  --color-rail: #fbf9ff;
+
+  --color-score-amber-bg: #fdf1d7;
+  --color-score-amber-fg: #8a6212;
+
+  --font-sans: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+
+  --radius-card: 14px;
+}
+
+@layer base {
+  html,
+  body {
+    height: 100%;
+  }
+
+  body {
+    background: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background: var(--color-brand-100);
+  }
+
+  /* The product chrome never scrolls horizontally; panes scroll on their own. */
+  body {
+    overflow: hidden;
+  }
+}
+
+@layer components {
+  .rail-icon {
+    @apply flex h-9 w-9 items-center justify-center rounded-lg text-faint transition-colors;
+  }
+  .rail-icon:hover {
+    @apply bg-brand-100/70 text-brand-600;
+  }
+  .rail-icon[data-active="true"] {
+    @apply bg-brand-100 text-brand-600;
+  }
+
+  .field {
+    @apply w-full rounded-xl border border-line bg-white px-3.5 py-2.5 text-[13.5px]
+      text-ink outline-none transition placeholder:text-faint;
+  }
+  .field:focus {
+    @apply border-brand-400 ring-4 ring-brand-100/70;
+  }
+
+  .card {
+    @apply rounded-[var(--radius-card)] border border-line bg-white;
+  }
+
+  .eyebrow {
+    @apply text-[11px] font-semibold uppercase tracking-[0.12em] text-faint;
+  }
+}
+
+/* Scrollbars — thin and unobtrusive, matching the product chrome. */
+@layer utilities {
+  .scroll-slim {
+    scrollbar-width: thin;
+    scrollbar-color: #dcdce6 transparent;
+  }
+  .scroll-slim::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  .scroll-slim::-webkit-scrollbar-thumb {
+    background: #dcdce6;
+    border: 3px solid transparent;
+    background-clip: content-box;
+    border-radius: 9999px;
+  }
+  .scroll-slim::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .animate-shimmer {
+    background-size: 400% 100%;
+    animation: shimmer 1.6s ease-in-out infinite;
+  }
+  @keyframes shimmer {
+    0% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  .animate-rise {
+    animation: rise 0.34s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  .animate-pop {
+    animation: pop 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  @keyframes pop {
+    from {
+      opacity: 0;
+      transform: translateY(6px) scale(0.985);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  .animate-fade {
+    animation: fade 0.2s ease both;
+  }
+  @keyframes fade {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  .caret::after {
+    content: "";
+    display: inline-block;
+    width: 2px;
+    height: 1em;
+    margin-left: 2px;
+    vertical-align: -0.15em;
+    background: currentColor;
+    animation: blink 1s steps(2, start) infinite;
+  }
+  @keyframes blink {
+    to {
+      visibility: hidden;
+    }
+  }
+}
