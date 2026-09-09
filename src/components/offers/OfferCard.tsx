@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Loader2, Trash2 } from "lucide-react";
+import { Loader2, Star, Trash2 } from "lucide-react";
 import clsx from "clsx";
 import { ScoreBadge } from "@/components/ui/ScoreBadge";
 import { STATUS_LABEL, relativeTime } from "@/lib/format";
@@ -12,9 +12,11 @@ const RUNNING = new Set(["queued", "niche", "script", "render"]);
 export function OfferCard({
   offer,
   onDelete,
+  onToggleStar,
 }: {
   offer: OfferSummary;
   onDelete: (id: string) => void;
+  onToggleStar?: (id: string, starred: boolean) => void;
 }) {
   const running = RUNNING.has(offer.status);
   const palette = offer.palette ?? ["#e8e8ee", "#f4f2ff"];
@@ -77,14 +79,36 @@ export function OfferCard({
         </div>
       </Link>
 
-      <button
-        type="button"
-        onClick={() => onDelete(offer.id)}
-        aria-label={`Delete ${offer.topic}`}
-        className="absolute top-3 right-3 rounded-md bg-white/85 p-1.5 text-muted opacity-0 backdrop-blur-sm transition group-hover:opacity-100 hover:text-rose-600 focus-visible:opacity-100"
-      >
-        <Trash2 size={14} strokeWidth={1.8} />
-      </button>
+      <div className="absolute top-3 right-3 flex gap-1">
+        {onToggleStar && (
+          <button
+            type="button"
+            onClick={() => onToggleStar(offer.id, !offer.starred)}
+            aria-label={offer.starred ? "Remove from saved" : "Save offer"}
+            aria-pressed={offer.starred}
+            className={clsx(
+              "rounded-md bg-white/85 p-1.5 backdrop-blur-sm transition focus-visible:opacity-100",
+              offer.starred
+                ? "text-amber-500 opacity-100"
+                : "text-muted opacity-0 group-hover:opacity-100 hover:text-amber-500",
+            )}
+          >
+            <Star
+              size={14}
+              strokeWidth={1.8}
+              fill={offer.starred ? "currentColor" : "none"}
+            />
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={() => onDelete(offer.id)}
+          aria-label={`Delete ${offer.topic}`}
+          className="rounded-md bg-white/85 p-1.5 text-muted opacity-0 backdrop-blur-sm transition group-hover:opacity-100 hover:text-rose-600 focus-visible:opacity-100"
+        >
+          <Trash2 size={14} strokeWidth={1.8} />
+        </button>
+      </div>
     </div>
   );
 }

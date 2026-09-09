@@ -524,3 +524,116 @@ export function buildField(topic: string, count: number): NicheSeed[] {
 }
 
 export { scoreOf };
+
+/* ------------------------------------------------------------------ *
+ * Opportunities from the explorer
+ * ------------------------------------------------------------------ */
+
+/**
+ * Some explored opportunities land on niches the library already covers
+ * properly. Those get the hand-written script; everything else is synthesised.
+ */
+const LIBRARY_FOR_OPPORTUNITY: Record<string, string> = {
+  "irregular-income": "freelance-cash-flow",
+  "desk-back": "desk-worker-back-pain",
+  "small-space": "small-space-decluttering",
+  "paper-clutter": "small-space-decluttering",
+  finishing: "adhd-follow-through",
+  "interview-answers": "job-interview-confidence",
+  "salary-negotiation": "job-interview-confidence",
+  "first-clients": "first-ten-clients",
+  "recurring-conflicts": "post-divorce-co-parenting",
+  "money-conversations": "post-divorce-co-parenting",
+};
+
+/**
+ * Turn a shortlisted opportunity into a seed the writer can work from.
+ *
+ * The explorer has already chosen the audience, the outcome and the constraint,
+ * so none of that is re-derived here — only the narrative slots the writer
+ * needs are filled in around them.
+ */
+export function seedFromOpportunity(
+  opportunity: import("@/lib/types").Opportunity,
+): NicheSeed {
+  const mapped = LIBRARY_FOR_OPPORTUNITY[opportunity.id];
+  const library = mapped ? LIBRARY.find((s) => s.id === mapped) : undefined;
+
+  const headline = `Helping ${opportunity.audience} ${opportunity.outcome} without ${opportunity.constraint}`;
+  const arena = opportunity.niche.toLowerCase();
+  const audienceShort = opportunity.audience.split(" ").slice(-2).join(" ");
+
+  if (library) {
+    // Keep the library's writing, but state the promise the explorer scored.
+    return {
+      ...library,
+      industry: opportunity.industry,
+      niche: opportunity.niche,
+      headline,
+      metrics: opportunity.metrics,
+      problemSolved: library.problemSolved,
+    };
+  }
+
+  const parsed: Parsed = {
+    subject: arena,
+    audience: opportunity.audience,
+    audienceShort,
+  };
+  const v = synthVoice(parsed);
+
+  return {
+    id: opportunity.id,
+    industry: opportunity.industry,
+    niche: opportunity.niche,
+    headline,
+    rationale: `${capitalise(opportunity.audience)} carry this every week. The available advice is written for somebody with more time, more money, or a different starting point, so it never survives contact with their actual situation.`,
+    specificKnowledge: `The creator should understand ${arena} well enough to know which parts genuinely matter for ${audienceShort}, what to cut, and where people predictably stall.`,
+    problemSolved: `${capitalise(opportunity.audience)} want to ${opportunity.outcome}, and every attempt so far has cost them ${opportunity.constraint}. This removes that trade-off and gets them to a first visible result.`,
+    metrics: opportunity.metrics,
+    frameworkName: "The Standing Rule",
+    premise: `Decide it once, on a calm day, so the hard day has nothing left to negotiate.`,
+    pillars: [
+      "Pick one input and make it automatic.",
+      "Design the week around your worst one.",
+      "Reach a visible result inside a fortnight.",
+    ],
+    pillarWhy: [
+      "if effort is spread evenly, nothing gets far enough to be visible",
+      "if the plan only works in a good week, it will not survive the month",
+      "if nothing observable happens, you will stop believing it is working",
+    ],
+    voice: {
+      audience: opportunity.audience,
+      audienceShort,
+      arena,
+      bigEvent: `living with ${arena}`,
+      obviousPart: "the information",
+      dailyPart: "the stretch where nothing feels like it is working",
+      frictions: [
+        "one missed week",
+        "one piece of contradictory advice",
+        "one comparison with somebody further along",
+      ],
+      unit: "step",
+      channel: "your week",
+      stakes: "the result you actually wanted",
+      winCondition: "a week where the plan simply happened",
+      setback: "a fortnight where nothing happened",
+    },
+    palette: PALETTES[Math.abs(hash(opportunity.id)) % PALETTES.length],
+    tags: [],
+    moves: genericMoves(parsed, v),
+    close: {
+      paras: [
+        `${capitalise(arena)} does not defeat ${audienceShort} because the information is missing. It defeats them because the plan assumed a week they do not have and a result they could not see soon enough to believe in.`,
+        `Fix both and the rest follows. One input, a schedule built for your worst week, and a first result close enough to reach — that is the whole method, and it is deliberately unimpressive.`,
+      ],
+      steps: [
+        `Name the single input you will prioritise for the next month, and write it down.`,
+        `Schedule three short steps attached to things that already happen in your week.`,
+        `Define a result you can reach in fourteen days and tell one person the date.`,
+      ],
+    },
+  };
+}

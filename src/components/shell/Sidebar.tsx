@@ -3,78 +3,79 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  BarChart3,
-  Heart,
+  Bell,
+  Gift,
   Home,
-  Headphones,
-  LayoutPanelTop,
-  Monitor,
+  Info,
   Plus,
-  Settings,
+  Shield,
   Sparkles,
-  Trash2,
+  Star,
 } from "lucide-react";
 import { Logo } from "@/components/ui/Logo";
 
+/**
+ * Every entry routes somewhere real — there are no decorative icons in this
+ * rail. `match` decides when an entry reads as the current section.
+ */
 const PRIMARY = [
-  { href: "/offers?new=1", icon: Plus, label: "New offer", match: null },
-  { href: "/", icon: Home, label: "Home", match: "/" },
+  { href: "/", icon: Plus, label: "New exploration", match: null },
+  { href: "/", icon: Home, label: "Home", match: "exact:/" },
   { href: "/offers", icon: Sparkles, label: "Offers", match: "/offers" },
-  { href: "/offers?view=funnels", icon: Monitor, label: "Funnels", match: null },
-  { href: "/offers?view=pages", icon: LayoutPanelTop, label: "Pages", match: null },
-  { href: "/offers?view=saved", icon: Heart, label: "Saved", match: null },
+  { href: "/explorations", icon: Shield, label: "Explorations", match: "/explorations" },
+  { href: "/activity", icon: Bell, label: "Activity", match: "/activity" },
+  { href: "/trending", icon: Gift, label: "Trending", match: "/trending" },
+  { href: "/saved", icon: Star, label: "Saved", match: "/saved" },
 ] as const;
 
-const SECONDARY = [
-  { href: "/offers?view=analytics", icon: BarChart3, label: "Analytics" },
-  { href: "/offers?view=trash", icon: Trash2, label: "Trash" },
-  { href: "/offers?view=support", icon: Headphones, label: "Support" },
-  { href: "/offers?view=settings", icon: Settings, label: "Settings" },
+const PRIMARY_TAIL = [
+  { href: "/help", icon: Info, label: "How it works", match: "/help" },
 ] as const;
 
 export function Sidebar() {
   const pathname = usePathname();
 
+  const isActive = (match: string | null) => {
+    if (!match) return false;
+    if (match.startsWith("exact:")) return pathname === match.slice(6);
+    return pathname.startsWith(match);
+  };
+
   return (
     <nav
       aria-label="Primary"
-      className="flex h-full w-[68px] shrink-0 flex-col items-center border-r border-line bg-rail py-4"
+      className="flex h-full w-[58px] shrink-0 flex-col items-center border-r border-line bg-rail py-4"
     >
-      <Link href="/offers" aria-label="Synthesise" className="mb-6 block">
-        <Logo />
+      <Link href="/" aria-label="Synthesise" className="mb-5 block">
+        <Logo size={22} />
       </Link>
 
-      <ul className="flex flex-col items-center gap-1.5">
-        {PRIMARY.map(({ href, icon: Icon, label, match }) => {
-          const active =
-            match === "/offers"
-              ? pathname.startsWith("/offers")
-              : match === pathname;
-          return (
-            <li key={label}>
-              <Link
-                href={href}
-                title={label}
-                aria-label={label}
-                data-active={active}
-                className="rail-icon"
-              >
-                <Icon size={17} strokeWidth={1.8} />
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
-
-      <ul className="mt-auto flex flex-col items-center gap-1.5">
-        {SECONDARY.map(({ href, icon: Icon, label }) => (
+      <ul className="flex flex-col items-center gap-1">
+        {[...PRIMARY, ...PRIMARY_TAIL].map(({ href, icon: Icon, label, match }) => (
           <li key={label}>
-            <Link href={href} title={label} aria-label={label} className="rail-icon">
-              <Icon size={17} strokeWidth={1.8} />
+            <Link
+              href={href}
+              title={label}
+              aria-label={label}
+              data-active={isActive(match)}
+              className="rail-icon"
+            >
+              <Icon size={16} strokeWidth={1.8} />
             </Link>
           </li>
         ))}
       </ul>
+
+      <div className="mt-auto">
+        <button
+          type="button"
+          title="Account"
+          aria-label="Account"
+          className="flex h-7 w-7 items-center justify-center rounded-full bg-linear-to-br from-brand-200 to-brand-400 text-[11px] font-semibold text-white transition hover:brightness-105"
+        >
+          S
+        </button>
+      </div>
     </nav>
   );
 }

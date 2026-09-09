@@ -65,6 +65,17 @@ export function OffersView({ initial }: { initial: OfferSummary[] }) {
     await fetch(`/api/offers/${id}`, { method: "DELETE" });
   }
 
+  async function toggleStar(id: string, starred: boolean) {
+    setOffers((current) =>
+      current.map((o) => (o.id === id ? { ...o, starred } : o)),
+    );
+    await fetch(`/api/offers/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ starred }),
+    });
+  }
+
   const dirty = query !== "" || sort !== "newest" || filter !== "all";
 
   const visible = useMemo(() => {
@@ -175,7 +186,12 @@ export function OffersView({ initial }: { initial: OfferSummary[] }) {
         ) : (
           <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
             {visible.map((offer) => (
-              <OfferCard key={offer.id} offer={offer} onDelete={remove} />
+              <OfferCard
+                key={offer.id}
+                offer={offer}
+                onDelete={remove}
+                onToggleStar={toggleStar}
+              />
             ))}
           </div>
         )}

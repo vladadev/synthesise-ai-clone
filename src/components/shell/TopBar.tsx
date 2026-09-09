@@ -7,7 +7,14 @@ export interface Crumb {
   href?: string;
 }
 
-export function TopBar({ crumbs }: { crumbs: Crumb[] }) {
+export function TopBar({
+  crumbs,
+  trailing = true,
+}: {
+  crumbs: Crumb[];
+  /** The offer breadcrumb ends on a chevron; the discovery one does not. */
+  trailing?: boolean;
+}) {
   return (
     <header className="flex h-[62px] shrink-0 items-center gap-2 border-b border-line px-5">
       <button
@@ -38,7 +45,7 @@ export function TopBar({ crumbs }: { crumbs: Crumb[] }) {
             )}
           </li>
         ))}
-        {crumbs.length > 1 && (
+        {trailing && crumbs.length > 1 && (
           <li aria-hidden="true">
             <ChevronRight size={15} className="text-faint" strokeWidth={1.8} />
           </li>

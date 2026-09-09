@@ -7,6 +7,7 @@ import type {
 import type { NicheSeed } from "./corpus";
 import { scoreOf } from "./corpus";
 import { selectEngine } from ".";
+import { seedFromOpportunity } from "./derive";
 import { updateOffer } from "@/lib/store";
 import { hash } from "@/lib/ids";
 
@@ -80,7 +81,10 @@ export async function* runPipeline(offer: Offer): AsyncGenerator<StreamEvent> {
     yield { type: "status", status: "niche", step: "niche" };
     await updateOffer(offer.id, (o) => ({ ...o, status: "niche" }));
 
-    const seeds = await engine.field(offer.topic, total);
+    // An offer created from the explorer's shortlist already has its niche.
+    const seeds = offer.opportunity
+      ? [seedFromOpportunity(offer.opportunity)]
+      : await engine.field(offer.topic, total);
     const candidates: Candidate[] = [];
 
     for (let i = 0; i < seeds.length; i++) {

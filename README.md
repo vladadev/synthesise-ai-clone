@@ -26,10 +26,27 @@ cp .env.example .env.local
 
 ## The flow
 
-1. **Offers** (`/offers`) — the library, with search, filters, sorting and a
-   Create Offer modal (Guided vs Fast Mode, topic, Improve Writing, output
-   language).
-2. **Build** (`/offers/[id]`) — the three steps, streamed over SSE:
+1. **Composer** (`/`) — "What do you know, care about, or want to help people
+   with?" One box, a Guided/Fast mode picker, trending offers, a Growth
+   Operator path for building on someone else's expertise, and a "you choose"
+   option for a blank start.
+2. **Discover Your Profitable Pocket** (`/discover/[id]`) — the market sweep,
+   streamed over SSE in three stages:
+   - **Directions** — finds the industry directions worth exploring. Anything
+     typed in the composer re-orders this, because what the user already knows
+     is evidence about demand rather than only a filter.
+   - **Brainstorm** — turns each direction into concrete opportunities, listed
+     as Title Case topics against their industry ("20 directions explored").
+   - **Score** — restates each as *"I help <audience> <outcome> without
+     <constraint>"*, scores all 30, then cuts a shortlist with the current
+     leader and the field average ("30 evaluated · 20 ready to review").
+
+   Picking a shortlisted opportunity creates an offer with the niche already
+   decided — step 1 locks in immediately rather than re-scanning a field the
+   explorer has already scored.
+3. **Offers** (`/offers`) — the library, with search, filters, sorting, starring
+   and a Create Offer modal for starting from a topic directly.
+4. **Build** (`/offers/[id]`) — the three steps, streamed over SSE:
    - **Niche** — candidates land one at a time as `Drafting…` then resolve into
      a scored card (pain / demand / speed), against a `n / total` counter, with
      skeletons for the ones not reached yet. The highest score wins and the
@@ -40,6 +57,11 @@ cp .env.example .env.local
      end on a rule, a "how to tell it is working" section, and a close.
      Sections appear as they are written.
    - **Render** — the cover, drawn from the winning niche's palette.
+
+Every left-rail entry routes to a real page: Explorations (every sweep and its
+leader), Activity (a feed of runs), Trending (the whole opportunity corpus,
+ranked), Saved (starred offers) and How it works (what each stage does and what
+the score means).
 
 ## How it is put together
 
@@ -53,7 +75,11 @@ src/
     ui/                    button, score badge, metric bar, skeletons, logo
   hooks/useOfferStream.ts  folds the SSE events into render state
   lib/
-    types.ts               domain model + the streaming protocol
+    types.ts               domain model + both streaming protocols
+    discovery/
+      directions.ts        24 industry directions, 39 opportunities
+      engine.ts            seed-aware field selection and scoring
+      pipeline.ts          Directions -> Brainstorm -> Score, as events
     store.ts               JSON file store (serialised writes, atomic rename)
     ai/
       engine.ts            the two-method interface both engines implement
@@ -85,8 +111,15 @@ the UI are shared:
 
 Pain carries the most weight because a product nobody hurts for does not sell;
 speed the least, because slow-to-deliver is a scheduling problem rather than a
-demand problem. Metric bars are coloured by value, not by which metric they
-are, so a weak number reads as weak at a glance.
+demand problem. The same formula scores opportunities in the explorer and
+candidates in the builder, so one number means one thing everywhere. Metric bars
+are coloured by value, not by which metric they are, so a weak number reads as
+weak at a glance.
+
+A typed seed lifts pain and demand for the directions it matches, capped at
++0.9, and those rows are labelled "matches what you know". The cap is the point:
+knowing an area should let a good niche win, but should not let a weak one
+outrank a much stronger market.
 
 ## Notes and limits
 
@@ -95,7 +128,9 @@ are, so a weak number reads as weak at a glance.
   rather than translating.
 - Generated drafts are a starting point, not a finished product. Nothing here
   validates market claims; the scores are a model's opinion, or in offline mode
-  a hand-assigned one.
+  a hand-assigned one. **No live marketplace is queried** — the "market model"
+  is the corpus in `src/lib/discovery/`.
+- There is no PDF export yet.
 - `.data/` is local scratch state and is gitignored. Delete it to reset.
 
 ## Scripts

@@ -108,6 +108,16 @@ export interface Offer {
   /** Step 3 output. */
   cover: Cover | null;
 
+  /**
+   * Set when the offer was built from a shortlisted opportunity. The niche is
+   * already decided in that case, so step 1 locks in immediately rather than
+   * re-scanning a field the explorer has already scored.
+   */
+  opportunity: Opportunity | null;
+
+  /** Starred offers surface on the Saved page. */
+  starred: boolean;
+
   error: string | null;
 }
 
@@ -126,6 +136,7 @@ export interface OfferSummary {
   score: number | null;
   wordCount: number | null;
   palette: [string, string] | null;
+  starred: boolean;
 }
 
 /* ------------------------------------------------------------------ *
@@ -172,3 +183,100 @@ export const LANGUAGES = [
 export function languageLabel(code: string) {
   return LANGUAGES.find((l) => l.code === code) ?? LANGUAGES[0];
 }
+
+/* ------------------------------------------------------------------ *
+ * Discovery — "Discover Your Profitable Pocket"
+ *
+ * The stage that runs before an offer exists: explore industry directions,
+ * expand them into concrete opportunities, score every one, and hand back a
+ * ranked shortlist. An offer is built from whichever opportunity is chosen.
+ * ------------------------------------------------------------------ */
+
+export type DiscoveryStage = "directions" | "brainstorm" | "score" | "ready";
+
+export interface Direction {
+  id: string;
+  industry: string;
+  /** Why this industry is worth exploring at all. */
+  thesis: string;
+}
+
+export interface Opportunity {
+  id: string;
+  directionId: string;
+  industry: string;
+  niche: string;
+  /** Title Case topic line, shown during brainstorming. */
+  title: string;
+  /** "I help <audience> <outcome> without <constraint>". */
+  statement: string;
+  audience: string;
+  outcome: string;
+  constraint: string;
+  metrics: Metrics;
+  /** True when this sits in an area the user's own input matched. */
+  matchesSeed?: boolean;
+  /** Null until the scoring stage reaches it. */
+  score: number | null;
+}
+
+export interface Discovery {
+  id: string;
+  /** What the user typed in the composer. Empty means "you choose". */
+  seed: string;
+  mode: Mode;
+  language: string;
+  /** Set when the run is building an offer from someone else's expertise. */
+  onBehalfOf: string | null;
+  stage: DiscoveryStage;
+  directions: Direction[];
+  opportunities: Opportunity[];
+  /** How many directions this run intends to explore. */
+  directionTarget: number;
+  /** How many opportunities it intends to generate and score. */
+  opportunityTarget: number;
+  /** How many make the final shortlist. */
+  shortlistTarget: number;
+  createdAt: string;
+  updatedAt: string;
+  error: string | null;
+}
+
+export interface DiscoverySummary {
+  id: string;
+  seed: string;
+  stage: DiscoveryStage;
+  createdAt: string;
+  updatedAt: string;
+  leader: string | null;
+  leaderScore: number | null;
+  evaluated: number;
+  shortlisted: number;
+}
+
+export type DiscoveryEvent =
+  | { type: "stage"; stage: DiscoveryStage }
+  | { type: "direction"; direction: Direction; index: number; total: number }
+  | {
+      type: "opportunity";
+      opportunity: Opportunity;
+      index: number;
+      total: number;
+      directionsExplored: number;
+    }
+  | { type: "scored"; id: string; score: number; index: number; total: number }
+  | {
+      type: "shortlist";
+      leaderId: string;
+      average: number;
+      evaluated: number;
+      shortlisted: number;
+    }
+  | { type: "done" }
+  | { type: "error"; message: string };
+
+export const DISCOVERY_STAGES: { id: DiscoveryStage; label: string }[] = [
+  { id: "directions", label: "Directions" },
+  { id: "brainstorm", label: "Brainstorm" },
+  { id: "score", label: "Score" },
+];
